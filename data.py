@@ -31,3 +31,23 @@ def getWeeksMatches(wkNumber):
         for match in matches["data"]:
             if match["game_week"] == wkNumber:
                 print(match["home_name"] + " vs " + match["away_name"])
+
+
+def getHomeTeamStats(club):
+    with open("data/team_data.json") as teamStats:
+        teamStats = json.load(teamStats)
+        for team in teamStats["data"]:
+            if team["cleanName"] == club:
+                print("CH = ", team["stats"]["cornersAVG_home"])
+                print("HS = ", team["stats"]["shotsAVG_home"])
+                print("HST = ", team["stats"]["shotsOnTargetAVG_home"])
+
+
+def getAwayTeamStats(club):
+    with open("data/team_data.json") as teamStats:
+        teamStats = json.load(teamStats)
+        for team in teamStats["data"]:
+            if team["cleanName"] == club:
+                print("CA = ", team["stats"]["cornersAVG_away"])
+                print("AS = ", team["stats"]["shotsAVG_away"])
+                print("AST =  ", team["stats"]["shotsOnTargetAVG_away"])
