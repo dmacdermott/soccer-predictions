@@ -1,6 +1,10 @@
 # get game data for current week
 import requests
 import json
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 # DATA NEEDED
 # home_name, away_name, game_week, corners_fh_home,
@@ -41,6 +45,7 @@ def getHomeTeamStats(club):
                 print("CH = ", team["stats"]["cornersAVG_home"])
                 print("HS = ", team["stats"]["shotsAVG_home"])
                 print("HST = ", team["stats"]["shotsOnTargetAVG_home"])
+                return [team["stats"]["shotsAVG_home"], team["stats"]["shotsOnTargetAVG_home"], team["stats"]["cornersAVG_home"]]
 
 
 def getAwayTeamStats(club):
@@ -51,3 +56,27 @@ def getAwayTeamStats(club):
                 print("CA = ", team["stats"]["cornersAVG_away"])
                 print("AS = ", team["stats"]["shotsAVG_away"])
                 print("AST =  ", team["stats"]["shotsOnTargetAVG_away"])
+                return [team["stats"]["shotsAVG_away"], team["stats"]["shotsOnTargetAVG_away"], team["stats"]["cornersAVG_away"]]
+
+
+def getResultsPrediction(home, away):
+    homeStats = getHomeTeamStats(home)
+    awayStats = getAwayTeamStats(away)
+    inputs = [homeStats[0], awayStats[0], homeStats[1],
+              awayStats[1], homeStats[2], awayStats[2], 5.25, 4.33, 1.57]
+    model = nn.Linear(9, 1)
+    model.load_state_dict(torch.load("ml_models/results_model_47.05"))
+    model.eval()
+    inputs = np.array(inputs, dtype="float32")
+    inputs = torch.from_numpy(inputs)
+    prediction = model(inputs)
+    prediction = torch.round(prediction)
+    if prediction[0] == 1:
+        print(home + " will win")
+    elif prediction[0] == 0:
+        print("It will be a draw")
+    else:
+        print(away + " will win")
+
+
+getResultsPrediction("Arsenal", "Manchester City")
