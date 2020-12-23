@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from datetime import datetime
 
 # DATA NEEDED
 # home_name, away_name, game_week, corners_fh_home,
@@ -37,9 +38,14 @@ def getWeeksMatches(wkNumber):
         matches = json.load(matches)
         for num, match in enumerate(matches["data"], start=1):
             if match["game_week"] == wkNumber:
+                date = datetime.fromtimestamp(match["date_unix"])
+                time = date.strftime("%H:%M")
+                date = date.strftime("%d %B, %Y")
+                print(time)
                 matchDetails = {
-                    "id": match["id"], "date_unix": match["date_unix"], "stadium_name": match["stadium_name"],
-                    "game_week": match["game_week"],  "away_image": "https://cdn.footystats.org/img/"+match["away_image"], "home_image": "https://cdn.footystats.org/img/"+match["home_image"]}
+                    "id": match["id"], "date": date, "time": time, "stadium_name": match["stadium_name"],
+                    "game_week": match["game_week"],  "away_image": "https://cdn.footystats.org/img/"+match["away_image"], "home_image": "https://cdn.footystats.org/img/"+match["home_image"],
+                    "status": match["status"], "homeGoalCount": match["homeGoalCount"], "awayGoalCount": match["awayGoalCount"]}
                 myPreds = getResultsPrediction(
                     match["home_name"], match["away_name"])
                 matchInfo = {**matchDetails, **myPreds}
