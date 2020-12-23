@@ -1,8 +1,10 @@
 import json
 
 
+weeksMatches = list()
+
+
 def getWeeksMatches(wkNumber):
-    weeksMatches = list()
 
     with open("data/all_matches.json") as matches:
         matches = json.load(matches)
@@ -22,13 +24,12 @@ def getWeeksMatches(wkNumber):
                 awayData = getTeamData(match["away_name"], wkNumber, "away_")
                 matchData = {**data, **homeData, **awayData}
                 weeksMatches.append(matchData)
-    print(weeksMatches)
-    return weeksMatches
+    print(wkNumber)
 
 
 def getTeamData(club, wkNumber, HorA):
     weeklyTeamData = dict()
-    with open(f"data/stats/wk{wkNumber}.json") as teamStats:
+    with open(f"data/stats/wk{wkNumber-1}.json") as teamStats:
         teamStats = json.load(teamStats)
         for team in teamStats["data"]:
             if team["cleanName"] == club:
@@ -53,7 +54,11 @@ def getTeamData(club, wkNumber, HorA):
     return weeklyTeamData
 
 
-for week in range(3):
-    getWeeksMatches(week+2)
+def getAllData(num):
+    for week in range(num):
+        getWeeksMatches(week+2)
+    file = open("./data/final/allMatchData.json", "w+")
+    file.write(json.dumps(weeksMatches))
 
-# getWeeksMatches(3)
+
+getAllData(13)
