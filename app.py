@@ -22,6 +22,8 @@ def getNewData():
 
 # Link with date for TeamData to check past results
 # "https: // api.footystats.org/league-teams?key=example & season_id=4759 & include=stats & max_time=1600732800"
+
+
 def getTeamData():
     teamData = requests.get(
         "https://api.footystats.org/league-teams?key=example&season_id=4759&include=stats").json()
@@ -30,11 +32,14 @@ def getTeamData():
 
 
 def getWeeksMatches(wkNumber):
+    weeksMatches = dict()
     with open("data/all_matches.json") as matches:
         matches = json.load(matches)
-        for match in matches["data"]:
+        for num, match in enumerate(matches["data"], start=1):
             if match["game_week"] == wkNumber:
-                print(match["home_name"] + " vs " + match["away_name"])
+                print(match["home_name"] + " vs " +
+                      match["away_name"], " Prediction is")
+                getResultsPrediction(match["home_name"], match["away_name"])
 
 
 def getHomeTeamStats(club):
@@ -42,9 +47,9 @@ def getHomeTeamStats(club):
         teamStats = json.load(teamStats)
         for team in teamStats["data"]:
             if team["cleanName"] == club:
-                print("CH = ", team["stats"]["cornersAVG_home"])
-                print("HS = ", team["stats"]["shotsAVG_home"])
-                print("HST = ", team["stats"]["shotsOnTargetAVG_home"])
+                # print("CH = ", team["stats"]["cornersAVG_home"])
+                # print("HS = ", team["stats"]["shotsAVG_home"])
+                # print("HST = ", team["stats"]["shotsOnTargetAVG_home"])
                 return [team["stats"]["shotsAVG_home"], team["stats"]["shotsOnTargetAVG_home"], team["stats"]["cornersAVG_home"]]
 
 
@@ -53,17 +58,28 @@ def getAwayTeamStats(club):
         teamStats = json.load(teamStats)
         for team in teamStats["data"]:
             if team["cleanName"] == club:
-                print("CA = ", team["stats"]["cornersAVG_away"])
-                print("AS = ", team["stats"]["shotsAVG_away"])
-                print("AST =  ", team["stats"]["shotsOnTargetAVG_away"])
+                # print("CA = ", team["stats"]["cornersAVG_away"])
+                # print("AS = ", team["stats"]["shotsAVG_away"])
+                # print("AST =  ", team["stats"]["shotsOnTargetAVG_away"])
                 return [team["stats"]["shotsAVG_away"], team["stats"]["shotsOnTargetAVG_away"], team["stats"]["cornersAVG_away"]]
 
 
+def getOdds(home, away):
+    with open("data/all_matches.json") as matches:
+        matches = json.load(matches)
+        for match in matches["data"]:
+            if match["home_name"] == home and match["away_name"] == away:
+
+                return [match["odds_ft_1"],
+                        match["odds_ft_x"], match["odds_ft_2"]]
+
+
 def getResultsPrediction(home, away):
+    odds = getOdds(home, away)
     homeStats = getHomeTeamStats(home)
     awayStats = getAwayTeamStats(away)
     inputs = [homeStats[0], awayStats[0], homeStats[1],
-              awayStats[1], homeStats[2], awayStats[2], 5.25, 4.33, 1.57]
+              awayStats[1], homeStats[2], awayStats[2], odds[0], odds[1], odds[2]]
     model = nn.Linear(9, 1)
     model.load_state_dict(torch.load("ml_models/results_model_47.05"))
     model.eval()
@@ -79,4 +95,4 @@ def getResultsPrediction(home, away):
         print(away + " will win")
 
 
-getResultsPrediction("Arsenal", "Manchester City")
+getWeeksMatches(14)
