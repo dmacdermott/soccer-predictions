@@ -87,12 +87,31 @@ def getResultsPrediction(home, away):
     inputs = torch.from_numpy(inputs)
     prediction = model(inputs)
     prediction = torch.round(prediction)
+
+    model = nn.Linear(9, 1)
+    model.load_state_dict(torch.load("ml_models/home_model_36.23"))
+    model.eval()
+    homeScorePrediction = model(inputs)
+    homeScorePrediction = torch.round(homeScorePrediction)
+
+    model = nn.Linear(9, 1)
+    model.load_state_dict(torch.load("ml_models/away_model_40.68"))
+    model.eval()
+    awayScorePrediction = model(inputs)
+    awayScorePrediction = torch.round(awayScorePrediction)
+
+    result = f"{homeScorePrediction[0]} - {awayScorePrediction[0]}"
+
     if prediction[0] == 1:
-        print(home + " will win")
+        print(home + " will win ", result)
+        return f"{home} will win {result}."
     elif prediction[0] == 0:
-        print("It will be a draw")
+        print("It will be a draw ", result)
+        return f"It will be a draw {result}."
+
     else:
-        print(away + " will win")
+        print(away + " will win ", result)
+        return f"{away} will win {result}."
 
 
-getWeeksMatches(14)
+getWeeksMatches(15)
