@@ -32,14 +32,21 @@ def getTeamData():
 
 
 def getWeeksMatches(wkNumber):
-    weeksMatches = dict()
+    weeksMatches = list()
     with open("data/all_matches.json") as matches:
         matches = json.load(matches)
         for num, match in enumerate(matches["data"], start=1):
             if match["game_week"] == wkNumber:
-                print(match["home_name"] + " vs " +
-                      match["away_name"], " Prediction is")
-                getResultsPrediction(match["home_name"], match["away_name"])
+                matchDetails = {
+                    "id": match["id"], "date_unix": match["date_unix"], "stadium_name": match["stadium_name"],
+                    "game_week": match["game_week"],  "away_image": "https://cdn.footystats.org/img/"+match["away_image"], "home_image": "https://cdn.footystats.org/img/"+match["home_image"]}
+                myPreds = getResultsPrediction(
+                    match["home_name"], match["away_name"])
+                matchInfo = {**matchDetails, **myPreds}
+                weeksMatches.append(matchInfo)
+                # weeksMatches.append(getResultsPrediction(
+                #     match["home_name"], match["away_name"]))
+        return weeksMatches
 
 
 def getHomeTeamStats(club):
@@ -69,7 +76,6 @@ def getOdds(home, away):
         matches = json.load(matches)
         for match in matches["data"]:
             if match["home_name"] == home and match["away_name"] == away:
-
                 return [match["odds_ft_1"],
                         match["odds_ft_x"], match["odds_ft_2"]]
 
@@ -87,31 +93,37 @@ def getResultsPrediction(home, away):
     inputs = torch.from_numpy(inputs)
     prediction = model(inputs)
     prediction = torch.round(prediction)
+    prediction = prediction.item()
 
     model = nn.Linear(9, 1)
     model.load_state_dict(torch.load("ml_models/home_model_36.23"))
     model.eval()
     homeScorePrediction = model(inputs)
     homeScorePrediction = torch.round(homeScorePrediction)
+    homeScorePrediction = homeScorePrediction.item()
 
     model = nn.Linear(9, 1)
     model.load_state_dict(torch.load("ml_models/away_model_40.68"))
     model.eval()
     awayScorePrediction = model(inputs)
     awayScorePrediction = torch.round(awayScorePrediction)
+    awayScorePrediction = awayScorePrediction.item()
 
-    result = f"{homeScorePrediction[0]} - {awayScorePrediction[0]}"
+    return {"home_team": home, "away_team": away, "prediction": prediction, "home_score": homeScorePrediction, "away_score": awayScorePrediction
+            }
 
-    if prediction[0] == 1:
-        print(home + " will win ", result)
-        return f"{home} will win {result}."
-    elif prediction[0] == 0:
-        print("It will be a draw ", result)
-        return f"It will be a draw {result}."
+    # result = f"{homeScorePrediction[0]} - {awayScorePrediction[0]}"
 
-    else:
-        print(away + " will win ", result)
-        return f"{away} will win {result}."
+    # if prediction[0] == 1:
+    #     print(home + " will win ", result)
+    #     return {"home_team": home, "away_team": away, "prediction": prediction[0], "home_score": homeScorePrediction[0], "away_score": awayScorePrediction[0]
+    #             }
+    # elif prediction[0] == 0:
+    #     print("It will be a draw ", result)
+    #     return {"home_team": home, "away_team": away, "prediction": prediction[0], "home_score": homeScorePrediction[0], "away_score": awayScorePrediction[0]
+    #             }
 
-
-getWeeksMatches(15)
+    # else:
+    #     print(away + " will win ", result)
+    #     return {"home_team": home, "away_team": away, "prediction": prediction[0], "home_score": homeScorePrediction[0], "away_score": awayScorePrediction[0]
+    #             }
