@@ -48,14 +48,17 @@ def getWeeksMatches(wkNumber):
                 date = datetime.fromtimestamp(match["date_unix"])
                 time = date.strftime("%H:%M")
                 date = date.strftime("%d %B, %Y")
-                print(time)
                 matchDetails = {
                     "id": match["id"], "date": date, "time": time, "stadium_name": match["stadium_name"],
                     "game_week": match["game_week"],  "away_image": "https://cdn.footystats.org/img/"+match["away_image"], "home_image": "https://cdn.footystats.org/img/"+match["home_image"],
                     "status": match["status"], "homeGoalCount": match["homeGoalCount"], "awayGoalCount": match["awayGoalCount"]}
                 myPreds = getResultsPrediction(
                     match["home_name"], match["away_name"])
-                matchInfo = {**matchDetails, **myPreds}
+                results = dict()
+                if(matchDetails["status"] == "complete"):
+                    results = resultsCheck(matchDetails["homeGoalCount"], matchDetails["awayGoalCount"],
+                                           myPreds["prediction"], myPreds["home_score"], myPreds["away_score"])
+                matchInfo = {**matchDetails, **myPreds, **results}
                 weeksMatches.append(matchInfo)
                 # weeksMatches.append(getResultsPrediction(
                 #     match["home_name"], match["away_name"]))
@@ -124,3 +127,43 @@ def getResultsPrediction(home, away):
 
     return {"home_team": home, "away_team": away, "prediction": prediction, "home_score": homeScorePrediction, "away_score": awayScorePrediction
             }
+
+
+def resultsCheck(finalHomeScore, finalAwayScore, resultPred, homeScorePred, awayScorePred):
+    result = 1
+    resultsCheck = dict()
+    if(finalHomeScore == homeScorePred and finalAwayScore == awayScorePred):
+        resultsCheck["score_result"] = True
+    else:
+        resultsCheck["score_result"] = False
+
+    if(finalHomeScore > finalAwayScore):
+        result = 1
+    elif(finalHomeScore < finalAwayScore):
+        result = -1
+    else:
+        result = 0
+
+    if(resultPred == result):
+        resultsCheck["pred_result"] = True
+    else:
+        resultsCheck["pred_result"] = False
+
+    return resultsCheck
+
+
+def getPredictionStats(matches):
+    scorePredCorrect = 0
+    resultPredCorrect = 0
+    for match in matches:
+        if(match["status"] == "completed"):
+            if(match["homeGoalCount"] == match["home_score"] and match["awayGoalCount"] == match["away_score"]):
+                scorePredCorrect += 1
+            if(match["homeGoalCount"] > match["awayGoalCount"] and match["prediction"] == 1):
+                resultPredCorrect += 1
+            if(match["homeGoalCount"] < match["awayGoalCount"] and match["prediction"] == -1):
+                resultPredCorrect += 1
+            if(match["homeGoalCount"] == match["awayGoalCount"] and match["prediction"] == 0):
+                resultPredCorrect += 1
+    return {"scorePredCorrect": scorePredCorrect,
+            "resultPredCorrect": resultPredCorrect}

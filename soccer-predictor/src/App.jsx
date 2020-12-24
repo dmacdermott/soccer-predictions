@@ -2,14 +2,13 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Filter from "./components/Filter";
 import GameList from "./components/GameList";
-import darkIcon from "./dark.svg";
-import lightIcon from "./light.svg";
 
 function App() {
   const [matches, setMatches] = useState();
   const [dark, setDark] = useState(false);
   const [leagueStats, setLeagueStats] = useState();
   const [gameWeek, setGameWeek] = useState();
+  const [weeklyPredStats, setWeeklyPredStats] = useState();
 
   const handleDarkMode = () => {
     setDark(prev => !prev);
@@ -22,12 +21,51 @@ function App() {
     let week = event.target.value;
     axios.get(`/matches/${week}`).then(res => {
       setMatches(res.data);
+      handleWeeklyPredStats(res.data);
     });
   };
 
   const handleCurrentMatches = week => {
     axios.get(`/matches/${week}`).then(res => {
       setMatches(res.data);
+      handleWeeklyPredStats(res.data);
+    });
+  };
+
+  const handleWeeklyPredStats = weeklyGames => {
+    let scorePredCorrect = 0;
+    let resultPredCorrect = 0;
+    for (let i = 0; i < weeklyGames.length; i++) {
+      if (
+        weeklyGames[i].homeGoalCount === weeklyGames[i].home_score &&
+        weeklyGames[i].awayGoalCount === weeklyGames[i].away_score
+      ) {
+        scorePredCorrect++;
+      }
+
+      if (
+        weeklyGames[i].homeGoalCount > weeklyGames[i].awayGoalCount &&
+        weeklyGames[i].prediction === 1 &&
+        weeklyGames[i].homeGoalCount
+      ) {
+        resultPredCorrect++;
+      } else if (
+        weeklyGames[i].homeGoalCount < weeklyGames[i].awayGoalCount &&
+        weeklyGames[i].prediction === -1 &&
+        weeklyGames[i].homeGoalCount
+      ) {
+        resultPredCorrect++;
+      } else if (
+        weeklyGames[i].homeGoalCount === weeklyGames[i].awayGoalCount &&
+        weeklyGames[i].prediction === 0 &&
+        weeklyGames[i].homeGoalCount
+      ) {
+        resultPredCorrect++;
+      }
+    }
+    setWeeklyPredStats({
+      scorePredCorrect: scorePredCorrect,
+      resultPredCorrect: resultPredCorrect,
     });
   };
 
@@ -44,9 +82,9 @@ function App() {
 
   return (
     <div className="App dark:bg-gray-800 dark:text-white">
-      <div className="relative h-32 w-32 ...">
+      <div className="relative w-full">
         <div
-          className="absolute top-0 right-0 h-16 w-16 ..."
+          className="absolute top-0 right-0 h-8 w-8 m-2"
           onClick={handleDarkMode}
         >
           {dark ? (
@@ -55,6 +93,7 @@ function App() {
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              className=""
             >
               <path
                 strokeLinecap="round"
@@ -85,7 +124,7 @@ function App() {
 
       <Filter handleMatches={handleMatches} leagueStats={leagueStats} />
 
-      <GameList matches={matches} />
+      <GameList matches={matches} weeklyPredStats={weeklyPredStats} />
     </div>
   );
 }
