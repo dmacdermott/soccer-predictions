@@ -120,7 +120,7 @@ function App() {
         </div>
       </div>
 
-      <header className="text-xl text-center">Game Predictor</header>
+      <header className="text-2xl text-center py-5">Game Predictor</header>
 
       <Filter handleMatches={handleMatches} leagueStats={leagueStats} />
 
