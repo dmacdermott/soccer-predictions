@@ -14,15 +14,13 @@ from datetime import datetime
 # "B365H", "B365D", "B365A"
 
 
+# FUNCTIONS TO GET DATA NEEDED
+
 def getNewData():
     allMatches = requests.get(
         "https://api.footystats.org/league-matches?key=test85g57&league_id=4759").json()
     with open("data/all_matches.json", "w", encoding='utf-8') as outfile:
         json.dump(allMatches, outfile,  ensure_ascii=False, indent=4)
-
-
-# Link with date for TeamData to check past results
-# "https: // api.footystats.org/league-teams?key=example & season_id=4759 & include=stats & max_time=1600732800"
 
 
 def getTeamData():
@@ -31,6 +29,15 @@ def getTeamData():
     with open("data/team_data.json", "w", encoding='utf-8') as outfile:
         json.dump(teamData, outfile,  ensure_ascii=False, indent=4)
 
+
+def getSeasonData():
+    allMatches = requests.get(
+        "https://api.footystats.org/league-season?key=example&season_id=4759").json()
+    with open("data/season_data.json", "w", encoding='utf-8') as outfile:
+        json.dump(allMatches, outfile,  ensure_ascii=False, indent=4)
+
+
+# FUNCTIONS TO GET STATS FOR PREDICTIONS
 
 def getWeeksMatches(wkNumber):
     weeksMatches = list()
@@ -117,19 +124,3 @@ def getResultsPrediction(home, away):
 
     return {"home_team": home, "away_team": away, "prediction": prediction, "home_score": homeScorePrediction, "away_score": awayScorePrediction
             }
-
-    # result = f"{homeScorePrediction[0]} - {awayScorePrediction[0]}"
-
-    # if prediction[0] == 1:
-    #     print(home + " will win ", result)
-    #     return {"home_team": home, "away_team": away, "prediction": prediction[0], "home_score": homeScorePrediction[0], "away_score": awayScorePrediction[0]
-    #             }
-    # elif prediction[0] == 0:
-    #     print("It will be a draw ", result)
-    #     return {"home_team": home, "away_team": away, "prediction": prediction[0], "home_score": homeScorePrediction[0], "away_score": awayScorePrediction[0]
-    #             }
-
-    # else:
-    #     print(away + " will win ", result)
-    #     return {"home_team": home, "away_team": away, "prediction": prediction[0], "home_score": homeScorePrediction[0], "away_score": awayScorePrediction[0]
-    #             }
