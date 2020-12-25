@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Filter from "./components/Filter";
 import GameList from "./components/GameList";
+import Blink from "react-blink-text";
 
 function App() {
   const [matches, setMatches] = useState();
@@ -9,6 +10,7 @@ function App() {
   const [leagueStats, setLeagueStats] = useState();
   const [gameWeek, setGameWeek] = useState();
   const [weeklyPredStats, setWeeklyPredStats] = useState();
+  const [refresh, setRefresh] = useState(false);
 
   const handleDarkMode = () => {
     setDark(prev => !prev);
@@ -32,13 +34,21 @@ function App() {
     });
   };
 
+  const handleRefresh = () => {
+    setRefresh(true);
+    axios.get(`/get_data`).then(res => {
+      setRefresh(false);
+    });
+  };
+
   const handleWeeklyPredStats = weeklyGames => {
     let scorePredCorrect = 0;
     let resultPredCorrect = 0;
     for (let i = 0; i < weeklyGames.length; i++) {
       if (
         weeklyGames[i].homeGoalCount === weeklyGames[i].home_score &&
-        weeklyGames[i].awayGoalCount === weeklyGames[i].away_score
+        weeklyGames[i].awayGoalCount === weeklyGames[i].away_score &&
+        weeklyGames[i].homeGoalCount
       ) {
         scorePredCorrect++;
       }
@@ -84,7 +94,7 @@ function App() {
     <div className="App dark:bg-gray-800 dark:text-white">
       <div className="relative w-full">
         <div
-          className="absolute top-0 right-0 h-8 w-8 m-2"
+          className="absolute top-0 right-0 h-8 w-8 m-2 cursor-pointer"
           onClick={handleDarkMode}
         >
           {dark ? (
@@ -117,6 +127,25 @@ function App() {
               />
             </svg>
           )}
+        </div>
+        <div
+          className="absolute top-0 left-0 h-8 w-8 m-2 cursor-pointer"
+          onClick={handleRefresh}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+            />
+          </svg>
+          {refresh && <Blink text="Downloading.." fontSize="0.5rem"></Blink>}
         </div>
       </div>
 
